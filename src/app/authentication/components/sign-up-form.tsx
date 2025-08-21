@@ -11,15 +11,16 @@ import { Input } from "@/components/ui/input";
 
 const formSchema = z
   .object({
-    name: z.string().min(1, "O nome não pode ser vazio"),
-    email: z.string().email("Email inválido"),
-    password: z.string().min(8, "A senha deve conter pelo menos 8 caracteres"),
+    name: z.string().trim().min(1, "O nome não pode ser vazio"),
+    email: z.string().trim().email("Email inválido"),
+    password: z.string().trim().min(8, "A senha deve conter pelo menos 8 caracteres"),
     confirmPassword: z
       .string()
+      .trim()
       .min(8, "A senha deve conter pelo menos 8 caracteres"),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "As senhas não coincidem",
+    error: "As senhas não coincidem",
     path: ["confirmPassword"], // <- onde o erro vai aparecer
   });
 

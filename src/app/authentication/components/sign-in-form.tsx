@@ -10,8 +10,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 
 const formSchema = z.object({
-    email: z.email("Email inválido"),
-    password: z.string("Senha inválida").min(8, "A senha deve conter pelo menos 8 caracteres"),    
+    email: z.string().trim().email("Email inválido"),
+    password: z.string().trim().min(8, "A senha deve conter pelo menos 8 caracteres"),    
 });
 
 type FormSchema = z.infer<typeof formSchema>;
