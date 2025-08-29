@@ -143,6 +143,33 @@ export const shippingAddressRelations = relations(shippingAddressTable, ({ one }
   }),
 }));
 
-export const userRelations = relations(userTable, ({ many }) => ({
+export const userRelations = relations(userTable, ({ many, one }) => ({
   shippingAddresses: many(shippingAddressTable),
+  carts: one(cartTable, {
+    fields: [userTable.id],
+    references: [cartTable.userId],
+  }),
 }));
+
+export const cartTable = pgTable("cart", {
+  id: uuid().primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  shippingAddressId: uuid("shipping_address_id")
+    .notNull()
+    .references(() => shippingAddressTable.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const cartRelations = relations(cartTable, ({ one, many }) => ({
+  user: one(user, {
+    fields: [cartTable.userId],
+    references: [user.id],
+  }),
+  shippingAddress: one(shippingAddressTable, {
+    fields: [cartTable.shippingAddressId],
+    references: [shippingAddressTable.id],
+  }),
+}));
+
