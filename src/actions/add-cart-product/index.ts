@@ -24,14 +24,17 @@ export const addProductToCart = async (data: AddProductToCartSchema) => {
   if (!productVariant) {
     throw new Error("Product variant not found");
   }
-  const [newCart] = await db
-  .insert(cartTable)
-  .values({
-    user_id: session.user.id, // use o nome correto da coluna
-    // outros campos obrigatórios, se houver, ou deixados com default no DB
-  })
-  .returning();
-
+  const cart = await db.query.cartTable.findFirst({
+    where: (cart, { eq }) => eq(cart.userId, session.user.id),
+  });
+  let cartId = cart?.id;
+  if (!cartId) {
+    const [newCart] = await db
+      .insert(cartTable)
+      .values({
+        userId: session.user.id,
+      })
+      .returning();
     cartId = newCart.id;
   }
   const cartItem = await db.query.cartItemTable.findFirst({

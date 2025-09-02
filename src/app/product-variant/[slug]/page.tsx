@@ -1,5 +1,4 @@
 import { eq } from "drizzle-orm";
-// import { MinusIcon } from "lucide-react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
@@ -7,11 +6,10 @@ import { formatCentsToBRL } from "@/app/helpers/money";
 import Footer from "@/components/common/footer";
 import { Header } from "@/components/common/header";
 import ProductList from "@/components/common/products-list";
-import { Button } from "@/components/ui/button";
 import { db } from "@/db";
 import { productTable, productVariantTable } from "@/db/schema";
 
-import QuantitySelector from "./components/quantity-selector";
+import ProductActions from "./components/product-actions";
 import VariantSelector from "./components/variant-select";
 
 interface ProductVariantPageProps { 
@@ -40,6 +38,8 @@ const ProductVariantPage = async ({ params }: ProductVariantPageProps) => {
       variants: true,
     },
   });
+
+
   return ( 
     <>
     <Header />
@@ -61,16 +61,7 @@ const ProductVariantPage = async ({ params }: ProductVariantPageProps) => {
 
 
 
-      {/* QUANTIDADE */}
-      <div className="px-5">
-        <QuantitySelector />
-      </div>
-
-
-    <div className="px-5 space-y-4 flex flex-col">
-    <Button variant="outline" className="rounded-full" size="lg">Adicionar ao carrinho</Button>
-     <Button className="rounded-full" size="lg">Comprar agora</Button>
-    </div>
+      <ProductActions productVariantId={productVariant.id} />
 
 
 <div className="px-5">
