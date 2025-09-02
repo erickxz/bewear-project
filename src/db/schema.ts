@@ -1,7 +1,12 @@
 import { relations } from "drizzle-orm";
-import { boolean, integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-
-import { user } from "../../auth-schema";
+import {
+  boolean,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 export const userTable = pgTable("user", {
   id: text("id").primaryKey(),
@@ -19,6 +24,14 @@ export const userTable = pgTable("user", {
     .notNull(),
 });
 
+export const userRelations = relations(userTable, ({ many, one }) => ({
+  shippingAddresses: many(shippingAddressTable),
+  cart: one(cartTable, {
+    fields: [userTable.id],
+    references: [cartTable.userId],
+  }),
+}));
+
 export const sessionTable = pgTable("session", {
   id: text("id").primaryKey(),
   expiresAt: timestamp("expires_at").notNull(),
@@ -29,7 +42,7 @@ export const sessionTable = pgTable("session", {
   userAgent: text("user_agent"),
   userId: text("user_id")
     .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
+    .references(() => userTable.id, { onDelete: "cascade" }),
 });
 
 export const accountTable = pgTable("account", {
@@ -38,7 +51,7 @@ export const accountTable = pgTable("account", {
   providerId: text("provider_id").notNull(),
   userId: text("user_id")
     .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
+    .references(() => userTable.id, { onDelete: "cascade" }),
   accessToken: text("access_token"),
   refreshToken: text("refresh_token"),
   idToken: text("id_token"),
@@ -62,7 +75,6 @@ export const verificationTable = pgTable("verification", {
     () => /* @__PURE__ */ new Date(),
   ),
 });
-
 
 export const categoryTable = pgTable("category", {
   id: uuid().primaryKey().defaultRandom(),
@@ -116,11 +128,12 @@ export const productVariantRelations = relations(
     }),
   }),
 );
+
 export const shippingAddressTable = pgTable("shipping_address", {
   id: uuid().primaryKey().defaultRandom(),
   userId: text("user_id")
     .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
+    .references(() => userTable.id, { onDelete: "cascade" }),
   recipientName: text().notNull(),
   street: text().notNull(),
   number: text().notNull(),
@@ -136,40 +149,36 @@ export const shippingAddressTable = pgTable("shipping_address", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const shippingAddressRelations = relations(shippingAddressTable, ({ one }) => ({
-  user: one(user, {
-    fields: [shippingAddressTable.userId],
-    references: [user.id],
+export const shippingAddressRelations = relations(
+  shippingAddressTable,
+  ({ one }) => ({
+    user: one(userTable, {
+      fields: [shippingAddressTable.userId],
+      references: [userTable.id],
+    }),
+    cart: one(cartTable, {
+      fields: [shippingAddressTable.id],
+      references: [cartTable.shippingAddressId],
+    }),
   }),
-  carts: one(cartTable, {
-    fields: [shippingAddressTable.id],
-    references: [cartTable.shippingAddressId],
-  }),
-}));
-
-export const userRelations = relations(userTable, ({ many, one }) => ({
-  shippingAddresses: many(shippingAddressTable),
-  carts: one(cartTable, {
-    fields: [userTable.id],
-    references: [cartTable.userId],
-  }),
-}));
+);
 
 export const cartTable = pgTable("cart", {
   id: uuid().primaryKey().defaultRandom(),
   userId: text("user_id")
     .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  shippingAddressId: uuid("shipping_address_id")
-    .notNull()
-    .references(() => shippingAddressTable.id, { onDelete: "set null" }),
+    .references(() => userTable.id, { onDelete: "cascade" }),
+  shippingAddressId: uuid("shipping_address_id").references(
+    () => shippingAddressTable.id,
+    { onDelete: "set null" },
+  ),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const cartRelations = relations(cartTable, ({ one, many }) => ({
-  user: one(user, {
+  user: one(userTable, {
     fields: [cartTable.userId],
-    references: [user.id],
+    references: [userTable.id],
   }),
   shippingAddress: one(shippingAddressTable, {
     fields: [cartTable.shippingAddressId],
