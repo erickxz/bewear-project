@@ -3,8 +3,8 @@ import { MinusIcon, PlusIcon, TrashIcon } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 
+import { addProductToCart } from "@/actions/add-cart-product";
 import { decreaseCartProduct } from "@/actions/decrease-cart-product";
-import { increaseCartProduct } from "@/actions/increase-cart-product";
 import { removeCartProduct } from "@/actions/remove-cart-product";
 import { formatCentsToBRL } from "@/app/helpers/money";
 
@@ -13,6 +13,7 @@ import { Button } from "../ui/button";
 interface CartItemProps {
   id: string;
   productName: string;
+  productVariantId: string;
   productVariantName: string;
   productVariantImageUrl: string;
   productVariantPriceInCents: number;
@@ -22,6 +23,7 @@ interface CartItemProps {
 const CartItem = ({
   id,
   productName,
+  productVariantId,
   productVariantName,
   productVariantImageUrl,
   productVariantPriceInCents,
@@ -34,9 +36,9 @@ const CartItem = ({
       queryClient.invalidateQueries({ queryKey: ["cart"] });
     },
   });
-  const increaseCartProductMutation = useMutation({
+  const addProductToCartMutation = useMutation({
     mutationKey: ["increase-cart-product", id],
-    mutationFn: () => increaseCartProduct({ cartItemId: id,}),
+    mutationFn: () => addProductToCart({ productVariantId, quantity: 1}),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
     },
@@ -66,13 +68,14 @@ const CartItem = ({
       },
     });
   }
+
   const handleIncreaseClick = () => {
-    increaseCartProductMutation.mutate(undefined, {
+    addProductToCartMutation.mutate(undefined, {
       onSuccess: () => {
         // toast.success("Produto removido do carrinho");
       },
     });
-    };
+  };
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-4">
