@@ -3,11 +3,13 @@ import { MinusIcon, PlusIcon, TrashIcon } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 
+import { decreaseCartProduct } from "@/actions/decrease-cart-product";
+import { increaseCartProduct } from "@/actions/increase-cart-product";
 import { removeCartProduct } from "@/actions/remove-cart-product";
 import { formatCentsToBRL } from "@/app/helpers/money";
 
 import { Button } from "../ui/button";
-
+  
 interface CartItemProps {
   id: string;
   productName: string;
@@ -25,6 +27,20 @@ const CartItem = ({
   productVariantPriceInCents,
   quantity,
 }: CartItemProps) => {
+  const decreaseCartProductMutation = useMutation({
+    mutationKey: ["decrease-cart-product", id],
+    mutationFn: () => decreaseCartProduct({ cartItemId: id,}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
+    },
+  });
+  const increaseCartProductMutation = useMutation({
+    mutationKey: ["increase-cart-product", id],
+    mutationFn: () => increaseCartProduct({ cartItemId: id,}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
+    },
+  });
   const queryClient = useQueryClient();
   const removeCartProductMutation = useMutation({
     mutationKey: ["remove-cart-product", id],
@@ -43,6 +59,20 @@ const CartItem = ({
       },
     });
   }
+  const handleDecreaseClick = () => {
+    decreaseCartProductMutation.mutate(undefined, {
+      onSuccess: () => {
+        // toast.success("Produto diminuido do carrinho");
+      },
+    });
+  }
+  const handleIncreaseClick = () => {
+    increaseCartProductMutation.mutate(undefined, {
+      onSuccess: () => {
+        // toast.success("Produto removido do carrinho");
+      },
+    });
+    };
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-4">
@@ -59,11 +89,11 @@ const CartItem = ({
             {productVariantName}
           </p>
           <div className="flex w-[100px] items-center justify-between rounded-lg border p-1">
-            <Button className="h-4 w-4" variant="ghost" onClick={() => {}}>
+            <Button className="h-4 w-4" variant="ghost" onClick={handleDecreaseClick}>
               <MinusIcon />
             </Button>
             <p className="text-xs font-medium">{quantity}</p>
-            <Button className="h-4 w-4" variant="ghost" onClick={() => {}}>
+            <Button className="h-4 w-4" variant="ghost" onClick={handleIncreaseClick}>
               <PlusIcon />
             </Button>
           </div>
