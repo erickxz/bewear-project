@@ -30,7 +30,6 @@ const CartItem = ({
 }: CartItemProps) => {
   const decreaseCartProductMutation = useDecreaseProductQuantity(id);
   const increaseCartProductMutation = useAddProductToCart(id, productVariantId, quantity);
-
   const removeCartProductMutation = useRemoveProductFromCart(id);
 
   const handleDeleteClick = () => {
