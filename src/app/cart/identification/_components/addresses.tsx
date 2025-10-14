@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCreateShippingAddress } from "@/hooks/mutations/use-create-shipping-address";
+import { useShippingAddresses } from "@/hooks/queries/use-shipping-addresses";
 
 const addressSchema = z.object({    
     email: z.string().email("Email inválido"),
@@ -36,6 +37,32 @@ const Addresses = () => {
     const [documentType, setDocumentType] = useState<'cpf' | 'cnpj'>('cpf');
     
     const createShippingAddressMutation = useCreateShippingAddress();
+    const { data: addresses, isLoading } = useShippingAddresses();
+    
+    const formatAddress = (address: {
+        recipientName: string;
+        street: string;
+        number: string;
+        complement?: string | null;
+        neighborhood: string;
+        city: string;
+        state: string;
+        zipCode: string;
+    }) => {
+        const addressLine = [address.street, address.number, address.complement]
+            .filter(Boolean)
+            .join(", ");
+        
+        const locationLine = `${address.neighborhood}, ${address.city}/${address.state}`;
+        const zipLine = `CEP: ${address.zipCode}`;
+        
+        return {
+            name: address.recipientName,
+            address: addressLine,
+            location: locationLine,
+            zip: zipLine
+        };
+    };
     
     const form = useForm<AddressFormData>({
       resolver: zodResolver(addressSchema),
@@ -72,14 +99,59 @@ const Addresses = () => {
         </CardHeader>
         <CardContent>
             <RadioGroup value={selectedAddress} onValueChange={setSelectedAddress}>
-            <Card>
-                <CardContent>
-                    <div className="flex items-center space-x-2">
+              {isLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-2"></div>
+                  <div className="text-gray-600">Carregando endereços...</div>
+                </div>
+              ) : (
+                <>
+                  {addresses?.map((address) => {
+                    const formatted = formatAddress(address);
+                    return (
+                      <Card key={address.id} className="cursor-pointer hover:bg-gray-50 transition-colors">
+                        <CardContent className="p-4">
+                          <div className="flex items-start space-x-3">
+                            <RadioGroupItem value={address.id} id={address.id} className="mt-1" />
+                            <div className="flex-1">
+                              <Label htmlFor={address.id} className="cursor-pointer">
+                                <div className="space-y-1">
+                                  <div className="font-semibold text-gray-900">
+                                    {formatted.name}
+                                  </div>
+                                  <div className="text-sm text-gray-700">
+                                    {formatted.address}
+                                  </div>
+                                  <div className="text-sm text-gray-600">
+                                    {formatted.location}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    {formatted.zip}
+                                  </div>
+                                </div>
+                              </Label>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                  
+                  <Card className="cursor-pointer hover:bg-gray-50 transition-colors border-dashed border-2 border-gray-300">
+                    <CardContent className="p-4">
+                      <div className="flex items-center space-x-3">
                         <RadioGroupItem value="add_new" id="add_new" />
-                        <Label htmlFor="option-two">Adicionar novo endereço</Label>
-                    </div>
-                </CardContent>
-            </Card>
+                        <Label htmlFor="add_new" className="cursor-pointer">
+                          <div className="flex items-center space-x-2">
+                            <div className="text-lg">+</div>
+                            <div className="font-medium text-gray-700">Adicionar novo endereço</div>
+                          </div>
+                        </Label>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
             </RadioGroup>
             {selectedAddress === "add_new" && (
             //   @ts-expect-error - Type issue with Form component
@@ -283,7 +355,7 @@ const Addresses = () => {
                   />
                 </div>
 
-                <div className="flex justify-end pt-4">
+                <div className="flex justify-end    ">
                   <Button 
                     type="submit" 
                     className="w-full md:w-auto"
