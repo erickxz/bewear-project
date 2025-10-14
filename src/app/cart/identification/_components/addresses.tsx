@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { PatternFormat } from "react-number-format";
+import { toast } from "sonner";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -12,35 +13,29 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useCreateShippingAddress } from "@/hooks/mutations/use-create-shipping-address";
 
 const addressSchema = z.object({    
-  email: z.email("Email inválido"),
-  fullName: z.string().min(1, "Nome completo é obrigatório").min(2, "Nome deve ter pelo menos 2 caracteres"),
-  document: z.string().min(1, "Documento é obrigatório").refine((val) => {
-      const cleanVal = val.replace(/\D/g, "");
-      return cleanVal.length === 11 || cleanVal.length === 14;
-    }, "Documento deve ter 11 dígitos ou 14 dígitos"),
-  phone: z.string().min(1, "Celular é obrigatório").refine((val) => {
-      const cleanVal = val.replace(/\D/g, "");
-      return cleanVal.length === 11;
-    }, "Celular deve ter 11 dígitos"),
-  zipCode: z.string().min(1, "CEP é obrigatório").refine((val) => {
-      const cleanVal = val.replace(/\D/g, "");
-      return cleanVal.length === 8;
-    }, "CEP deve ter 8 dígitos"),
-  address: z.string().min(1, "Endereço é obrigatório").min(5, "Endereço deve ter pelo menos 5 caracteres"),
-  number: z.string().min(1, "Número é obrigatório").regex(/^\d+$/, "Número deve conter apenas dígitos"),    
-  complement: z.string().optional(),
-  neighborhood: z.string().min(1, "Bairro é obrigatório").min(2, "Bairro deve ter pelo menos 2 caracteres"),
-  city: z.string().min(1, "Cidade é obrigatória").min(2, "Cidade deve ter pelo menos 2 caracteres"),
-  state: z.string().min(1, "Estado é obrigatório").max(2, "Estado deve ter no máximo 2 caracteres (UF)")
-});
+    email: z.string().email("Email inválido"),
+    fullName: z.string().min(1, "Nome completo é obrigatório").min(2, "Nome deve ter pelo menos 2 caracteres"),
+    document: z.string().min(1, "Documento é obrigatório").refine((val) => { const clean = val.replace(/\D/g, ""); return clean.length === 11 || clean.length === 14; }, { message: "Documento deve ter 11 (CPF) ou 14 dígitos (CNPJ)" }),
+    phone: z.string().min(1, "Celular é obrigatório").refine((val) => val.replace(/\D/g, "").length === 11, { message: "Celular deve ter 11 dígitos" }),
+    zipCode: z.string().min(1, "CEP é obrigatório").refine((val) => val.replace(/\D/g, "").length === 8, { message: "CEP deve ter 8 dígitos" }),
+    address: z.string().min(1, "Endereço é obrigatório").min(5, "Endereço deve ter pelo menos 5 caracteres"),
+    number: z.string().min(1, "Número é obrigatório").regex(/^\d+$/, "Número deve conter apenas dígitos"),
+    complement: z.string().optional(),
+    neighborhood: z.string().min(1, "Bairro é obrigatório").min(2, "Bairro deve ter pelo menos 2 caracteres"),
+    city: z.string().min(1, "Cidade é obrigatória").min(2, "Cidade deve ter pelo menos 2 caracteres"),
+    state: z.string().min(1, "Estado é obrigatório").max(2, "Estado deve ter no máximo 2 caracteres (UF)"),
+  });
 
 type AddressFormData = z.infer<typeof addressSchema>;
 
 const Addresses = () => {
     const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
     const [documentType, setDocumentType] = useState<'cpf' | 'cnpj'>('cpf');
+    
+    const createShippingAddressMutation = useCreateShippingAddress();
     
     const form = useForm<AddressFormData>({
       resolver: zodResolver(addressSchema),
@@ -59,8 +54,16 @@ const Addresses = () => {
       }
     });
 
-    const onSubmit = (values: AddressFormData) => {
-      console.log('Endereço:', values);
+    const onSubmit = async (values: AddressFormData) => {
+      try {
+        await createShippingAddressMutation.mutateAsync(values);
+        toast.success("Endereço salvo com sucesso!");
+        setSelectedAddress(null);
+        form.reset();
+      } catch (error) {
+        toast.error("Erro ao salvar endereço. Tente novamente.");
+        console.error("Erro ao salvar endereço:", error);
+      }
     };
   return (
     <Card>
@@ -281,8 +284,12 @@ const Addresses = () => {
                 </div>
 
                 <div className="flex justify-end pt-4">
-                  <Button type="submit" className="w-full md:w-auto">
-                    Salvar Endereço
+                  <Button 
+                    type="submit" 
+                    className="w-full md:w-auto"
+                    disabled={createShippingAddressMutation.isPending}
+                  >
+                    {createShippingAddressMutation.isPending ? "Salvando..." : "Salvar Endereço"}
                   </Button>
                 </div>
                 </form>
