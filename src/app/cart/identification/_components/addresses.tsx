@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { shippingAddressTable } from "@/db/schema";
 import { useCreateShippingAddress } from "@/hooks/mutations/use-create-shipping-address";
+import { useLinkShippingAddressToCart } from "@/hooks/mutations/use-link-shipping-address-to-cart";
 import { useShippingAddresses } from "@/hooks/queries/use-shipping-addresses";
 
 const addressSchema = z.object({    
@@ -43,6 +44,7 @@ const Addresses = ({ shippingAddresses }: AddressesProps) => {
     const [documentType, setDocumentType] = useState<'cpf' | 'cnpj'>('cpf');
     
     const createShippingAddressMutation = useCreateShippingAddress();
+    const linkShippingAddressMutation = useLinkShippingAddressToCart();
     const { data: addresses, isLoading } = useShippingAddresses({initialData: shippingAddresses});
     
     const formatAddress = (address: {
@@ -91,13 +93,28 @@ const Addresses = ({ shippingAddresses }: AddressesProps) => {
 
     const onSubmit = async (values: AddressFormData) => {
       try {
-        await createShippingAddressMutation.mutateAsync(values);
+        const newAddress = await createShippingAddressMutation.mutateAsync(values);
         toast.success("Endereço salvo com sucesso!");
+        
+        // Vincular o novo endereço ao carrinho
+        await linkShippingAddressMutation.mutateAsync(newAddress.id);
+        toast.success("Endereço vinculado ao carrinho!");
+        
         setSelectedAddress(null);
         form.reset();
       } catch (error) {
         toast.error("Erro ao salvar endereço. Tente novamente.");
         console.error("Erro ao salvar endereço:", error);
+      }
+    };
+
+    const handleExistingAddressSelection = async (addressId: string) => {
+      try {
+        await linkShippingAddressMutation.mutateAsync(addressId);
+        toast.success("Endereço vinculado ao carrinho!");
+      } catch (error) {
+        toast.error("Erro ao vincular endereço. Tente novamente.");
+        console.error("Erro ao vincular endereço:", error);
       }
     };
   return (
@@ -161,6 +178,20 @@ const Addresses = ({ shippingAddresses }: AddressesProps) => {
                 </>
               )}
             </RadioGroup>
+            
+            {/* Botão de pagamento para endereço existente selecionado */}
+            {selectedAddress && selectedAddress !== "add_new" && (
+              <div className="mt-6 flex justify-end">
+                <Button 
+                  onClick={() => handleExistingAddressSelection(selectedAddress)}
+                  disabled={linkShippingAddressMutation.isPending}
+                  className="w-full md:w-auto"
+                >
+                  {linkShippingAddressMutation.isPending ? "Vinculando..." : "Ir para Pagamento"}
+                </Button>
+              </div>
+            )}
+            
             {selectedAddress === "add_new" && (
             //   @ts-expect-error - Type issue with Form component
               <Form {...form}>
