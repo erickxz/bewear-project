@@ -13,6 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { shippingAddressTable } from "@/db/schema";
 import { useCreateShippingAddress } from "@/hooks/mutations/use-create-shipping-address";
 import { useShippingAddresses } from "@/hooks/queries/use-shipping-addresses";
 
@@ -32,12 +33,17 @@ const addressSchema = z.object({
 
 type AddressFormData = z.infer<typeof addressSchema>;
 
-const Addresses = () => {
+interface AddressesProps {
+    shippingAddresses: typeof shippingAddressTable.$inferSelect[];
+}
+    
+
+const Addresses = ({ shippingAddresses }: AddressesProps) => {
     const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
     const [documentType, setDocumentType] = useState<'cpf' | 'cnpj'>('cpf');
     
     const createShippingAddressMutation = useCreateShippingAddress();
-    const { data: addresses, isLoading } = useShippingAddresses();
+    const { data: addresses, isLoading } = useShippingAddresses({initialData: shippingAddresses});
     
     const formatAddress = (address: {
         recipientName: string;
@@ -64,6 +70,8 @@ const Addresses = () => {
         };
     };
     
+
+
     const form = useForm<AddressFormData>({
       resolver: zodResolver(addressSchema),
       defaultValues: {
