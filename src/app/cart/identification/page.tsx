@@ -8,6 +8,7 @@ import { db } from "@/db";
 import { shippingAddressTable } from "@/db/schema";
 import { auth } from "@/lib/auth";
 
+import CartSummary from "../_components/cart-summary";
 import Addresses from "./_components/addresses";
 
 const IdentificationPage = async() => {
@@ -40,11 +41,22 @@ const IdentificationPage = async() => {
     const shippingAddress = await db.query.shippingAddressTable.findMany({
         where: eq(shippingAddressTable.userId, session.user.id),
     });
+
+    const cartTotalPriceInCents = cart.items.reduce((acc, item) => acc + item.productVariant.priceInCents * item.quantity, 0);
   return (
    <>
    <Header />
-   <div className="p-5">
+   <div className="p-5 space-y-4">
    <Addresses shippingAddresses={shippingAddress} initialCart={cart as unknown as Awaited<ReturnType<typeof getCart>>} />
+
+   <CartSummary subTotalInCents={cartTotalPriceInCents} totalInCents={cartTotalPriceInCents} products={cart.items.map((item) => ({
+    id: item.id,
+    name: item.productVariant.product.name,
+    variantName: item.productVariant.name,
+    imageUrl: item.productVariant.imageUrl,
+    priceInCents: item.productVariant.priceInCents,
+    quantity: item.quantity,
+   }))} />
    </div>
    
    </>

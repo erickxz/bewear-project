@@ -197,7 +197,7 @@ const Addresses = ({ shippingAddresses, initialCart }: AddressesProps) => {
                 <Button 
                   onClick={() => handleExistingAddressSelection(selectedAddress)}
                   disabled={linkShippingAddressMutation.isPending}
-                  className="w-full md:w-auto"
+                  className="w-full md:w-auto rounded-full"
                 >
                   {linkShippingAddressMutation.isPending ? "Vinculando..." : "Ir para Pagamento"}
                 </Button>
