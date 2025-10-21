@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 
 import { db } from "@/db";
@@ -37,6 +38,8 @@ export const createShippingAddress = async (data: CreateShippingAddressSchema) =
       cpfOrCnpj: data.document,
     })
     .returning();
+
+  revalidatePath("/cart/identification");
 
   return shippingAddress;
 };
