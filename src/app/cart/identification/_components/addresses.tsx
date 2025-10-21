@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { PatternFormat } from "react-number-format";
@@ -44,6 +45,7 @@ interface AddressesProps {
 const Addresses = ({ shippingAddresses, initialCart }: AddressesProps) => {
     const [selectedAddress, setSelectedAddress] = useState<string | null>(initialCart.shippingAddressId || null);
     const [documentType, setDocumentType] = useState<'cpf' | 'cnpj'>('cpf');
+    const router = useRouter();
     
     const createShippingAddressMutation = useCreateShippingAddress();
     const linkShippingAddressMutation = useLinkShippingAddressToCart();
@@ -109,23 +111,26 @@ const Addresses = ({ shippingAddresses, initialCart }: AddressesProps) => {
         toast.success("Endereço salvo com sucesso!");
         
         // Vincular o novo endereço ao carrinho
-        await linkShippingAddressMutation.mutateAsync(newAddress.id);
-        toast.success("Endereço vinculado ao carrinho!");
-        
-        setSelectedAddress(null);
-        form.reset();
+        const result = await linkShippingAddressMutation.mutateAsync(newAddress.id);
+        if (result.success) {
+          router.push("/cart/confirmation");
+        }
       } catch (error) {
-        toast.error("Erro ao salvar endereço. Tente novamente.");
+        const errorMessage = error instanceof Error ? error.message : "Erro ao salvar endereço. Tente novamente.";
+        toast.error(errorMessage);
         console.error("Erro ao salvar endereço:", error);
       }
     };
 
     const handleExistingAddressSelection = async (addressId: string) => {
       try {
-        await linkShippingAddressMutation.mutateAsync(addressId);
-        // toast.success("Endereço vinculado ao carrinho!");
+        const result = await linkShippingAddressMutation.mutateAsync(addressId);
+        if (result.success) {
+          router.push("/cart/confirmation");
+        }
       } catch (error) {
-        toast.error("Erro ao vincular endereço. Tente novamente.");
+        const errorMessage = error instanceof Error ? error.message : "Erro ao vincular endereço. Tente novamente.";
+        toast.error(errorMessage);
         console.error("Erro ao vincular endereço:", error);
       }
     };
@@ -200,6 +205,7 @@ const Addresses = ({ shippingAddresses, initialCart }: AddressesProps) => {
                   className="w-full md:w-auto rounded-full"
                 >
                   {linkShippingAddressMutation.isPending ? "Vinculando..." : "Ir para Pagamento"}
+
                 </Button>
               </div>
             )}
