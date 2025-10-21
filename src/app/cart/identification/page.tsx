@@ -2,9 +2,10 @@ import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { getCart } from "@/actions/get-cart";
 import { Header } from "@/components/common/header";
 import { db } from "@/db";
-import { cartTable, shippingAddressTable } from "@/db/schema";
+import { shippingAddressTable } from "@/db/schema";
 import { auth } from "@/lib/auth";
 
 import Addresses from "./_components/addresses";
@@ -18,9 +19,18 @@ const IdentificationPage = async() => {
         redirect("/");
     }
     const cart = await db.query.cartTable.findFirst({
-        where: eq(cartTable.userId, session.user.id),
+        where: (cart, { eq }) => eq(cart.userId, session.user.id),
         with: {
-            items: true,
+          shippingAddress: true,
+          items: {
+            with: {
+              productVariant: {
+                with: {
+                  product: true,
+                },
+              },
+            },
+          },
         },
     });
     if (!cart || cart.items.length === 0) {
@@ -34,7 +44,7 @@ const IdentificationPage = async() => {
    <>
    <Header />
    <div className="p-5">
-   <Addresses shippingAddresses={shippingAddress} />
+   <Addresses shippingAddresses={shippingAddress} initialCart={cart as unknown as Awaited<ReturnType<typeof getCart>>} />
    </div>
    
    </>

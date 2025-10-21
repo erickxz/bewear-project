@@ -1,12 +1,13 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { PatternFormat } from "react-number-format";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { getCart } from "@/actions/get-cart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -16,6 +17,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { shippingAddressTable } from "@/db/schema";
 import { useCreateShippingAddress } from "@/hooks/mutations/use-create-shipping-address";
 import { useLinkShippingAddressToCart } from "@/hooks/mutations/use-link-shipping-address-to-cart";
+import { useCart } from "@/hooks/queries/use-cart";
 import { useShippingAddresses } from "@/hooks/queries/use-shipping-addresses";
 
 const addressSchema = z.object({    
@@ -36,17 +38,27 @@ type AddressFormData = z.infer<typeof addressSchema>;
 
 interface AddressesProps {
     shippingAddresses: typeof shippingAddressTable.$inferSelect[];
+    initialCart: Awaited<ReturnType<typeof getCart>>;
 }
-    
 
-const Addresses = ({ shippingAddresses }: AddressesProps) => {
-    const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
+const Addresses = ({ shippingAddresses, initialCart }: AddressesProps) => {
+    const [selectedAddress, setSelectedAddress] = useState<string | null>(initialCart.shippingAddressId || null);
     const [documentType, setDocumentType] = useState<'cpf' | 'cnpj'>('cpf');
     
     const createShippingAddressMutation = useCreateShippingAddress();
     const linkShippingAddressMutation = useLinkShippingAddressToCart();
     const { data: addresses, isLoading } = useShippingAddresses({initialData: shippingAddresses});
     
+
+    const { data: cart } = useCart({initialData: initialCart});
+
+    useEffect(() => {
+        if (cart?.shippingAddressId) {
+            setSelectedAddress(cart.shippingAddressId);
+        }
+    }, [cart?.shippingAddressId]);
+
+
     const formatAddress = (address: {
         recipientName: string;
         street: string;
