@@ -1,4 +1,3 @@
-
 import Image from "next/image";
 
 import { formatCentsToBRL } from "@/app/helpers/money";
@@ -55,11 +54,13 @@ const CartSummary = ({ subTotalInCents, totalInCents, products }: CartSummaryPro
           <p className="text-muted-foreground text-xs font-medium">
             {product.variantName}
           </p>
-          <p className="text-muted-foreground text-xs font-medium">x{product.quantity}</p>
-          <p className="text-sm font-bold">
+          <p className="text-muted-foreground text-sm font-medium">x{product.quantity}</p>
+        </div>
+      </div>
+      <div className="flex flex-col items-end justify-center gap-2">
+        <p className="text-sm font-bold">
           {formatCentsToBRL(product.priceInCents)}    
         </p>
-        </div>
       </div>
     </div>
                 ))}

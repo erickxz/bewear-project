@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getCart } from "@/actions/get-cart";
+import Footer from "@/components/common/footer";
 import { Header } from "@/components/common/header";
 import { db } from "@/db";
 import { shippingAddressTable } from "@/db/schema";
@@ -58,7 +59,7 @@ const IdentificationPage = async() => {
     quantity: item.quantity,
    }))} />
    </div>
-   
+   <Footer />
    </>
   )
 }

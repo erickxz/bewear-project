@@ -123,7 +123,7 @@ const Addresses = ({ shippingAddresses, initialCart }: AddressesProps) => {
     const handleExistingAddressSelection = async (addressId: string) => {
       try {
         await linkShippingAddressMutation.mutateAsync(addressId);
-        toast.success("Endereço vinculado ao carrinho!");
+        // toast.success("Endereço vinculado ao carrinho!");
       } catch (error) {
         toast.error("Erro ao vincular endereço. Tente novamente.");
         console.error("Erro ao vincular endereço:", error);
@@ -132,7 +132,7 @@ const Addresses = ({ shippingAddresses, initialCart }: AddressesProps) => {
   return (
     <Card>
         <CardHeader>
-            <CardTitle>Identificação</CardTitle>
+            <CardTitle className="text-m font-bold">Identificação</CardTitle>
         </CardHeader>
         <CardContent>
             <RadioGroup value={selectedAddress} onValueChange={setSelectedAddress}>
