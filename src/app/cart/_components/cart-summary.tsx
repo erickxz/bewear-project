@@ -31,7 +31,7 @@ const CartSummary = ({ subTotalInCents, totalInCents, products }: CartSummaryPro
                 </div>
                 <div className="flex justify-between">
                     <p className="text-sm font-medium">Frete</p>
-                    <p className="text-sm text-muted-foreground font-medium">GRÁTIS</p>
+                    <p className="text-sm font-medium text-green-500">GRÁTIS</p>
                 </div>
                 <div className="flex justify-between">
                     <p className="text-sm font-medium">Total</p>
