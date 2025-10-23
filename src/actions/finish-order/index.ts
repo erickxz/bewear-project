@@ -1,6 +1,7 @@
 "use server";
 
 import { eq } from "drizzle-orm";
+// import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 
 import { db } from "@/db";
@@ -79,4 +80,5 @@ export const finishOrder = async () => {
     await tx.delete(cartTable).where(eq(cartTable.id, cart.id));
     await tx.delete(cartItemTable).where(eq(cartItemTable.cartId, cart.id));
   });
+//   revalidatePath("/cart/identification");
 };

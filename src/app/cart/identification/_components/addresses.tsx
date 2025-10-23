@@ -43,7 +43,6 @@ interface AddressesProps {
 }
 
 const Addresses = ({ shippingAddresses, initialCart }: AddressesProps) => {
-    const [selectedAddress, setSelectedAddress] = useState<string | null>(initialCart.shippingAddressId || null);
     const [documentType, setDocumentType] = useState<'cpf' | 'cnpj'>('cpf');
     const router = useRouter();
     
@@ -51,14 +50,17 @@ const Addresses = ({ shippingAddresses, initialCart }: AddressesProps) => {
     const linkShippingAddressMutation = useLinkShippingAddressToCart();
     const { data: addresses, isLoading } = useShippingAddresses({initialData: shippingAddresses});
     
-
     const { data: cart } = useCart({initialData: initialCart});
 
+    const [selectedAddress, setSelectedAddress] = useState<string | null>(
+        cart?.shippingAddressId || initialCart.shippingAddressId || null
+    );
+
     useEffect(() => {
-        if (cart?.shippingAddressId) {
+        if (cart?.shippingAddressId && cart.shippingAddressId !== selectedAddress) {
             setSelectedAddress(cart.shippingAddressId);
         }
-    }, [cart?.shippingAddressId]);
+    }, [cart?.shippingAddressId, selectedAddress]);
 
 
     const formatAddress = (address: {
@@ -196,16 +198,14 @@ const Addresses = ({ shippingAddresses, initialCart }: AddressesProps) => {
               )}
             </RadioGroup>
             
-            {/* Botão de pagamento para endereço existente selecionado */}
-            {selectedAddress && selectedAddress !== "add_new" && (
+            {selectedAddress !== "add_new" && (
               <div className="mt-6 flex justify-end">
                 <Button 
-                  onClick={() => handleExistingAddressSelection(selectedAddress)}
-                  disabled={linkShippingAddressMutation.isPending}
+                  onClick={() => selectedAddress && handleExistingAddressSelection(selectedAddress)}
+                  disabled={!selectedAddress || linkShippingAddressMutation.isPending}
                   className="w-full md:w-auto rounded-full"
                 >
                   {linkShippingAddressMutation.isPending ? "Vinculando..." : "Ir para Pagamento"}
-
                 </Button>
               </div>
             )}

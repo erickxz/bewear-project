@@ -7,18 +7,22 @@ import { useState } from "react";
 
 // import { finishOrder } from "@/actions/finish-order";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useFinishOrder } from "@/hooks/mutations/use-finish-order";
 
 export const FinishOrderButton = () => {    
 
-    const [successDialogIsOpen, setSuccessDialogIsOpen] = useState(true);
+    const [successDialogIsOpen, setSuccessDialogIsOpen] = useState(false);
     const { mutate, isPending } = useFinishOrder();
+    const handleFinishOrder = () => {
+        mutate();
+        setSuccessDialogIsOpen(true);
+    }
     return (
         <>
-        <Button className="w-full md:w-auto rounded-full" disabled={isPending} onClick={() => mutate()}>
+        <Button className="w-full md:w-auto rounded-full" disabled={isPending} onClick={handleFinishOrder}>
             {isPending && <Loader2 className="animate-spin" />}
-            <Link href="/cart/pagamento">Finalizar compra</Link>
+            Finalizar compra
         </Button>
 
         <Dialog open={successDialogIsOpen} onOpenChange={setSuccessDialogIsOpen}>
@@ -29,8 +33,8 @@ export const FinishOrderButton = () => {
                 <Button className="w-full md:w-auto rounded-full mt-2" size="lg" onClick={() => setSuccessDialogIsOpen(false)}>
                     Ver meus pedidos
                 </Button>
-                <Button className="w-full md:w-auto rounded-full" variant="outline" size="lg" onClick={() => setSuccessDialogIsOpen(false)}>
-                    Voltar para a loja
+                <Button className="w-full md:w-auto rounded-full" variant="outline" size="lg" asChild>
+                    <Link href="/">Voltar para a loja</Link>
                 </Button>
             </DialogContent>
         </Dialog>
