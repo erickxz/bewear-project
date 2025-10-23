@@ -1,16 +1,17 @@
 import { headers } from "next/headers";
-import Link from "next/link";
+// import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import Footer from "@/components/common/footer";
 import { Header } from "@/components/common/header";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { db } from "@/db";
 import { auth } from "@/lib/auth";
 
 import CartSummary from "../_components/cart-summary";
+import { FinishOrderButton } from "./_components/finish-order-button";
 
 const ConfirmationPage = async () => {
 
@@ -72,9 +73,7 @@ const ConfirmationPage = async () => {
                                 </div>
                             </CardContent>
                         </Card>
-                        <Button className="w-full md:w-auto rounded-full">
-                                <Link href="/cart/pagamento">Finalizar compra</Link>
-                            </Button>
+                        <FinishOrderButton />
                     </CardContent>
                 </Card>
                 <CartSummary 
