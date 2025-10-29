@@ -11,7 +11,7 @@ import { db } from "@/db";
 import { auth } from "@/lib/auth";
 
 import CartSummary from "../_components/cart-summary";
-import { FinishOrderButton } from "./_components/finish-order-button";
+import FinishOrderButton from "../confirmation/_components/finish-order-button";
 
 const ConfirmationPage = async () => {
 
